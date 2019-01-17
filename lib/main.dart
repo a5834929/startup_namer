@@ -13,6 +13,37 @@ class RandomWordsState extends State<RandomWords>{
   final Set<WordPair> _saved = new Set<WordPair>();
   final TextStyle _biggerFont = const TextStyle(fontSize: 16.0);
 
+  void _pushSaved(){
+    Navigator.of(context).push(
+      new MaterialPageRoute<void>(
+        builder: (BuildContext context){
+          final Iterable<ListTile> tiles = _saved.map(
+            (WordPair pair){
+              return new ListTile(
+                title: new Text(
+                  pair.asPascalCase,
+                  style: _biggerFont
+                ),
+              );
+            },
+          );
+          final List<Widget> divided = ListTile
+            .divideTiles(
+              context: context,
+              tiles: tiles
+            )
+            .toList();
+          return new Scaffold(
+            appBar: new AppBar(
+              title: const Text('Saved Suggestions'),
+            ),
+            body: new ListView(children: divided),
+          );
+        },
+      ),
+    );
+  }
+
   @override
   Widget _buildRow(WordPair pair){
     final bool already_saved = _saved.contains(pair);
@@ -25,7 +56,16 @@ class RandomWordsState extends State<RandomWords>{
         already_saved ? Icons.favorite : Icons.favorite_border,
         color: already_saved ? Colors.red : null
         ),
-      );
+      onTap: (){
+        setState(() {
+          if (already_saved) {
+            _saved.remove(pair);
+          } else {
+            _saved.add(pair);
+          }
+        });
+      }
+    );
   }
 
   @override
@@ -39,7 +79,8 @@ class RandomWordsState extends State<RandomWords>{
           _suggestions.addAll(generateWordPairs().take(10));
         }
         return _buildRow(_suggestions[index]);
-        });
+      }
+    );
   }
 
   @override
@@ -47,9 +88,12 @@ class RandomWordsState extends State<RandomWords>{
     return Scaffold(
       appBar: AppBar(
         title: Text('Startup Name Generator'),
-        ),
+        actions: <Widget>[
+          new IconButton(icon: const Icon(Icons.list), onPressed: _pushSaved),
+        ]
+      ),
       body: _buildSuggestions(),
-      );
+    );
   }
 }
 
@@ -58,6 +102,10 @@ class MyApp extends StatelessWidget {
   Widget build(BuildContext context) {
     return MaterialApp(
       title: 'Startup Name Generator',
+      theme: new ThemeData(
+        primaryColor: Colors.teal,
+        scaffoldBackgroundColor: Colors.amber[50]
+      ),
       home: RandomWords(),
       );
   }
